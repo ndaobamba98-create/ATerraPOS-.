@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { 
-  LayoutDashboard, ShoppingCart, Package, BarChart3, Settings as SettingsIcon, Sun, Moon, IdCard, LogOut, Clock as ClockIcon, FileText, Search, ArrowRight, Users, ChevronLeft, ChevronRight, UserPlus, LogIn, Key, ShieldCheck, ChevronDown, ArrowRightLeft, Bell, X, Check, Trash2, BellOff, Info, AlertTriangle, CheckCircle, Maximize, Minimize, Calendar as CalendarIcon, Shield, UtensilsCrossed, ChefHat, Wifi, Sparkles, Wallet, Trash, Clock, Command
+  LayoutDashboard, ShoppingCart, Package, BarChart3, Settings as SettingsIcon, Sun, Moon, IdCard, LogOut, Clock as ClockIcon, FileText, Search, ArrowRight, Users, ChevronLeft, ChevronRight, UserPlus, LogIn, Key, ShieldCheck, ChevronDown, ArrowRightLeft, Bell, X, Check, Trash2, BellOff, Info, AlertTriangle, CheckCircle, Maximize, Minimize, Calendar as CalendarIcon, Shield, UtensilsCrossed, ChefHat, Wifi, Sparkles, Wallet, Trash, Clock, Command, ArrowUpRight, Coffee, UserCircle2, Receipt
 } from 'lucide-react';
 import { ViewType, Product, SaleOrder, Employee, ERPConfig, AttendanceRecord, User, CashSession, Expense, Customer, UserRole, AppNotification, RolePermission, POSLocations } from './types';
 import { INITIAL_PRODUCTS, INITIAL_EMPLOYEES, INITIAL_CONFIG, APP_USERS, INITIAL_CUSTOMERS, POS_LOCATIONS as INITIAL_LOCATIONS } from './constants';
@@ -95,13 +95,13 @@ const App: React.FC = () => {
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
   const [currentTime, setCurrentTime] = useState(new Date());
   
-  // États pour la connexion
   const [loginIdentifier, setLoginIdentifier] = useState('');
   const [passwordInput, setPasswordInput] = useState('');
   const [loginError, setLoginError] = useState(false);
 
-  // État pour la recherche globale
   const [globalSearchTerm, setGlobalSearchTerm] = useState('');
+  const [showSearchResults, setShowSearchResults] = useState(false);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
 
   const [signupName, setSignupName] = useState('');
   const [signupPassword, setSignupPassword] = useState('');
@@ -140,6 +140,29 @@ const App: React.FC = () => {
     return (translations[config.language || 'fr'] as any)[key] || key;
   }, [config.language]);
 
+  // --- RECHERCHE GLOBALE LOGIQUE ---
+  const globalResults = useMemo(() => {
+    if (globalSearchTerm.length < 2) return null;
+    const term = globalSearchTerm.toLowerCase();
+    
+    return {
+      products: products.filter(p => p.name.toLowerCase().includes(term) || p.sku.toLowerCase().includes(term) || p.category.toLowerCase().includes(term)).slice(0, 5),
+      customers: customers.filter(c => c.name.toLowerCase().includes(term) || c.phone.includes(term)).slice(0, 5),
+      sales: sales.filter(s => s.id.toLowerCase().includes(term) || s.customer.toLowerCase().includes(term)).slice(0, 5),
+      actions: sidebarItems.filter(item => item.label.toLowerCase().includes(term)).slice(0, 3)
+    };
+  }, [globalSearchTerm, products, customers, sales]);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(e.target as Node)) {
+        setShowSearchResults(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   const sidebarItems = useMemo(() => {
     const allItems = [
       { id: 'dashboard', icon: LayoutDashboard, label: t('dashboard') },
@@ -170,13 +193,13 @@ const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
+    const handleClickOutsideNotif = (event: MouseEvent) => {
       if (notifRef.current && !notifRef.current.contains(event.target as Node)) {
         setIsNotifOpen(false);
       }
     };
-    if (isNotifOpen) document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    if (isNotifOpen) document.addEventListener("mousedown", handleClickOutsideNotif);
+    return () => document.removeEventListener("mousedown", handleClickOutsideNotif);
   }, [isNotifOpen]);
 
   const toggleFullscreen = () => {
@@ -445,7 +468,6 @@ const App: React.FC = () => {
       <main className="flex-1 flex flex-col overflow-hidden bg-slate-50 dark:bg-slate-950 relative">
         <header className="h-24 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-8 z-10 animate-entryHeader">
           <div className="flex items-center space-x-6">
-            {/* HORLOGE ET DATE (HAUT À GAUCHE) */}
             <div className="flex items-center space-x-4 bg-slate-50 dark:bg-slate-800/50 px-5 py-2.5 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-inner group transition-all hover:bg-white dark:hover:bg-slate-800 shrink-0">
                <div className="p-2 bg-purple-600 text-white rounded-xl shadow-lg animate-pulse-subtle">
                   <Clock size={18} />
@@ -464,22 +486,120 @@ const App: React.FC = () => {
             </div>
           </div>
 
-          {/* BARRE DE RECHERCHE GLOBALE CENTRALE */}
-          <div className="flex-1 max-w-xl mx-8 relative group hidden md:block">
+          {/* RECHERCHE GLOBALE AVEC OVERLAY DE RÉSULTATS */}
+          <div className="flex-1 max-w-xl mx-8 relative group hidden md:block" ref={searchContainerRef}>
             <div className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-purple-600 transition-colors">
               <Search size={18} />
             </div>
             <input 
               type="text" 
               value={globalSearchTerm}
-              onChange={(e) => setGlobalSearchTerm(e.target.value)}
-              placeholder="Recherche globale (Produit, Client, Action...)"
+              onFocus={() => setShowSearchResults(true)}
+              onChange={(e) => {
+                setGlobalSearchTerm(e.target.value);
+                setShowSearchResults(true);
+              }}
+              placeholder="Recherche (Produit, Client, Facture...)"
               className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 rounded-[1.5rem] py-3.5 pl-14 pr-12 text-xs font-bold outline-none transition-all focus:bg-white dark:focus:bg-slate-800 focus:ring-4 focus:ring-purple-500/10 focus:border-purple-500"
             />
-            <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center space-x-1 pointer-events-none opacity-40 group-focus-within:opacity-0 transition-opacity">
-               <div className="p-1 border border-slate-300 rounded text-[8px] font-black uppercase tracking-tighter">Ctrl</div>
-               <div className="p-1 border border-slate-300 rounded text-[8px] font-black uppercase tracking-tighter">K</div>
-            </div>
+            
+            {showSearchResults && globalResults && (
+              <div className="absolute top-full left-0 w-full mt-3 bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl border border-slate-200 dark:border-slate-800 rounded-[2.5rem] shadow-[0_30px_60px_rgba(0,0,0,0.3)] z-[200] overflow-hidden animate-scaleIn origin-top">
+                <div className="max-h-[550px] overflow-y-auto p-4 scrollbar-hide">
+                  
+                  {/* SECTION PRODUITS */}
+                  {globalResults.products.length > 0 && (
+                    <div className="mb-6">
+                      <p className="px-6 py-2 text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] flex items-center"><Coffee size={12} className="mr-2"/> Produits & Menu</p>
+                      <div className="space-y-1">
+                        {globalResults.products.map(p => (
+                          <button key={p.id} onClick={() => { setActiveView('inventory'); setShowSearchResults(false); }} className="w-full px-6 py-4 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-2xl flex items-center justify-between group transition-all">
+                             <div className="flex items-center space-x-4">
+                                <div className="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-900/20 text-purple-600 flex items-center justify-center font-black">{p.name[0]}</div>
+                                <div className="text-left">
+                                   <p className="text-xs font-black uppercase text-slate-800 dark:text-white group-hover:text-purple-600">{p.name}</p>
+                                   <p className="text-[9px] font-bold text-slate-400 uppercase">{p.category} • SKU: {p.sku}</p>
+                                </div>
+                             </div>
+                             <span className="text-xs font-black text-slate-900 dark:text-white">{p.price} {config.currencySymbol}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* SECTION CLIENTS */}
+                  {globalResults.customers.length > 0 && (
+                    <div className="mb-6">
+                      <p className="px-6 py-2 text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] flex items-center"><UserCircle2 size={12} className="mr-2"/> Clients</p>
+                      <div className="space-y-1">
+                        {globalResults.customers.map(c => (
+                          <button key={c.id} onClick={() => { setActiveView('customers'); setShowSearchResults(false); }} className="w-full px-6 py-4 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-2xl flex items-center justify-between group transition-all">
+                             <div className="flex items-center space-x-4">
+                                <div className="w-10 h-10 rounded-full bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 flex items-center justify-center font-black">{c.name[0]}</div>
+                                <div className="text-left">
+                                   <p className="text-xs font-black uppercase text-slate-800 dark:text-white group-hover:text-emerald-600">{c.name}</p>
+                                   <p className="text-[9px] font-bold text-slate-400">{c.phone}</p>
+                                </div>
+                             </div>
+                             <div className="flex flex-col items-end">
+                                <span className={`text-[10px] font-black ${c.balance < 0 ? 'text-rose-500' : 'text-emerald-500'}`}>{c.balance} {config.currencySymbol}</span>
+                                <p className="text-[7px] font-black text-slate-300 uppercase">Solde</p>
+                             </div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* SECTION VENTES / FACTURES */}
+                  {globalResults.sales.length > 0 && (
+                    <div className="mb-6">
+                      <p className="px-6 py-2 text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] flex items-center"><Receipt size={12} className="mr-2"/> Factures</p>
+                      <div className="space-y-1">
+                        {globalResults.sales.map(s => (
+                          <button key={s.id} onClick={() => { setActiveView('invoicing'); setShowSearchResults(false); }} className="w-full px-6 py-4 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-2xl flex items-center justify-between group transition-all">
+                             <div className="flex items-center space-x-4">
+                                <div className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500"><Receipt size={16}/></div>
+                                <div className="text-left">
+                                   <p className="text-xs font-black font-mono text-purple-600">#{s.id.slice(-8)}</p>
+                                   <p className="text-[9px] font-bold text-slate-400 uppercase">{s.customer} • {s.date.split('T')[0]}</p>
+                                </div>
+                             </div>
+                             <span className="text-xs font-black text-slate-900 dark:text-white">{s.total} {config.currencySymbol}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* ACTIONS SYSTEME */}
+                  {globalResults.actions.length > 0 && (
+                    <div>
+                      <p className="px-6 py-2 text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] flex items-center"><Command size={12} className="mr-2"/> Modules</p>
+                      <div className="grid grid-cols-2 gap-2 p-2">
+                        {globalResults.actions.map(action => (
+                          <button key={action.id} onClick={() => { setActiveView(action.id as ViewType); setShowSearchResults(false); setGlobalSearchTerm(''); }} className="flex items-center space-x-3 p-4 bg-slate-50 dark:bg-slate-800/50 hover:bg-purple-600 hover:text-white rounded-2xl transition-all group">
+                             <action.icon size={18} className="text-purple-600 group-hover:text-white" />
+                             <span className="text-[10px] font-black uppercase tracking-widest">{action.label}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {(!globalResults.products.length && !globalResults.customers.length && !globalResults.sales.length && !globalResults.actions.length) && (
+                    <div className="py-20 text-center opacity-30 flex flex-col items-center space-y-4">
+                       <Search size={48} />
+                       <p className="text-[10px] font-black uppercase tracking-widest">Aucun résultat trouvé</p>
+                    </div>
+                  )}
+                </div>
+                <div className="p-4 bg-slate-50 dark:bg-slate-800/30 border-t border-slate-100 dark:border-slate-800 flex justify-center">
+                   <p className="text-[8px] font-black text-slate-400 uppercase tracking-[0.3em]">Tapez Échap pour fermer</p>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="flex items-center space-x-4 shrink-0">
