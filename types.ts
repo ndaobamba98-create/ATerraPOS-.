@@ -112,6 +112,14 @@ export interface PaymentEntry {
   amount: number;
 }
 
+export interface EventDetails {
+  date: string;
+  type: string;
+  location: string;
+  guests: number;
+  notes?: string;
+}
+
 export interface SaleOrder {
   id: string;
   customer: string;
@@ -129,6 +137,7 @@ export interface SaleOrder {
   change?: number;
   orderLocation?: string;
   payments?: PaymentEntry[];
+  eventDetails?: EventDetails; // Nouveaux champs pour les réservations
 }
 
 export interface Expense {

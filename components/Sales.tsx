@@ -1,11 +1,11 @@
 
 import React, { useState, useMemo } from 'react';
-import { SaleOrder, ERPConfig, Product, Expense, ViewType, PaymentMethod, User, SaleItem } from '../types';
+import { SaleOrder, ERPConfig, Product, Expense, ViewType, PaymentMethod, User, SaleItem, EventDetails } from '../types';
 import { 
-  ShoppingCart, Filter, Download, Plus, CheckCircle2, Clock, Truck, X, Printer, Mail, 
+  ShoppingCart, Filter, Download, Plus, Minus, CheckCircle2, Clock, Truck, X, Printer, Mail, 
   RotateCcw, Calendar, Trash2, AlertTriangle, Banknote, FileText, Search, 
   Package, PlusCircle, MinusCircle, QrCode, CreditCard, Smartphone, Wallet, 
-  FileDown, Eye, ArrowUpRight, ArrowDownLeft, Edit3, Save, History, UserCheck
+  FileDown, Eye, ArrowUpRight, ArrowDownLeft, Edit3, Save, History, UserCheck, FileCheck, FileSignature, MapPin, Users, Info
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
@@ -24,11 +24,16 @@ interface Props {
   t: (key: any) => string;
 }
 
-const Sales: React.FC<Props> = ({ sales, expenses = [], onUpdate, onRefundSale, config, products, userRole, currentUser, notify }) => {
+const Sales: React.FC<Props> = ({ sales, expenses = [], onUpdate, onRefundSale, config, products, userRole, currentUser, onAddSale, notify }) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [editingSale, setEditingSale] = useState<SaleOrder | null>(null);
-  const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
+  const [editingSale, setEditingSale] = useState<Partial<SaleOrder> | null>(null);
+  const [startDate, setStartDate] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() - 7);
+    return d.toISOString().split('T')[0];
+  });
   const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
+  const [activeFilter, setActiveFilter] = useState<'all' | 'confirmed' | 'quotation'>('all');
 
   const canEdit = userRole === 'admin' || userRole === 'manager';
 
@@ -37,20 +42,45 @@ const Sales: React.FC<Props> = ({ sales, expenses = [], onUpdate, onRefundSale, 
       const date = s.date.substring(0, 10);
       const matchesSearch = s.customer.toLowerCase().includes(searchTerm.toLowerCase()) || s.id.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesDate = date >= startDate && date <= endDate;
-      return matchesSearch && matchesDate;
+      const matchesType = activeFilter === 'all' || (activeFilter === 'confirmed' && s.status !== 'quotation') || (activeFilter === 'quotation' && s.status === 'quotation');
+      return matchesSearch && matchesDate && matchesType;
     }).sort((a, b) => b.date.localeCompare(a.date));
-  }, [sales, searchTerm, startDate, endDate]);
+  }, [sales, searchTerm, startDate, endDate, activeFilter]);
 
-  const handleUpdateSale = (e: React.FormEvent) => {
+  const handleSaveSale = (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingSale) return;
 
     const updatedTotal = editingSale.items?.reduce((acc, item) => acc + (item.price * item.quantity), 0) || 0;
-    const finalSale = { ...editingSale, total: updatedTotal };
+    const finalSale = { 
+      ...editingSale, 
+      total: updatedTotal,
+      date: editingSale.date || new Date().toISOString(),
+      status: editingSale.status || 'quotation',
+      customer: editingSale.customer || 'Client Divers'
+    } as SaleOrder;
 
-    onUpdate(sales.map(s => s.id === finalSale.id ? finalSale : s));
+    if (sales.find(s => s.id === finalSale.id)) {
+      onUpdate(sales.map(s => s.id === finalSale.id ? finalSale : s));
+      notify("Document mis à jour", `Le document ${finalSale.id} a été enregistré.`, "success");
+    } else {
+      onAddSale(finalSale);
+      notify("Devis Créé", `Nouveau devis enregistré.`, "success");
+    }
     setEditingSale(null);
-    notify("Vente modifiée", `La commande #${finalSale.id.slice(-6)} a été mise à jour.`, "success");
+  };
+
+  const convertToInvoice = (sale: SaleOrder) => {
+    if (confirm("Transformer ce devis en facture confirmée ?")) {
+      const updatedSale: SaleOrder = { 
+        ...sale, 
+        status: 'confirmed', 
+        invoiceStatus: 'posted',
+        date: new Date().toISOString() 
+      };
+      onUpdate(sales.map(s => s.id === sale.id ? updatedSale : s));
+      notify("Conversion réussie", "Le devis est maintenant une facture confirmée.", "success");
+    }
   };
 
   const adjustItemQty = (productId: string, delta: number) => {
@@ -64,11 +94,32 @@ const Sales: React.FC<Props> = ({ sales, expenses = [], onUpdate, onRefundSale, 
     setEditingSale({ ...editingSale, items: updatedItems });
   };
 
-  const removeItem = (productId: string) => {
+  const addItemToSale = (p: Product) => {
     if (!editingSale) return;
-    setEditingSale({
-      ...editingSale,
-      items: editingSale.items?.filter(i => i.productId !== productId)
+    const items = [...(editingSale.items || [])];
+    const exists = items.find(i => i.productId === p.id);
+    if (exists) {
+      exists.quantity += 1;
+    } else {
+      items.push({ productId: p.id, name: p.name, quantity: 1, price: p.price });
+    }
+    setEditingSale({ ...editingSale, items });
+  };
+
+  const startEventReservation = () => {
+    setEditingSale({ 
+      id: `RES-${Date.now()}`, 
+      status: 'quotation', 
+      items: [], 
+      customer: '', 
+      date: new Date().toISOString(),
+      eventDetails: {
+        date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        type: 'Mariage',
+        location: '',
+        guests: 50,
+        notes: ''
+      }
     });
   };
 
@@ -78,24 +129,34 @@ const Sales: React.FC<Props> = ({ sales, expenses = [], onUpdate, onRefundSale, 
         <div className="flex items-center space-x-6">
            <div className="p-4 bg-slate-900 text-white rounded-3xl shadow-xl"><History size={28} /></div>
            <div>
-              <h1 className="text-3xl font-black text-slate-900 dark:text-white uppercase tracking-tighter leading-none">Journal des Ventes</h1>
-              <p className="text-sm text-slate-500 font-medium mt-1">Gestion, annulation et rectification des tickets</p>
+              <h1 className="text-3xl font-black text-slate-900 dark:text-white uppercase tracking-tighter leading-none">Ventes & Réservations</h1>
+              <p className="text-sm text-slate-500 font-medium mt-1">Gestion du cycle commercial et événementiel</p>
            </div>
         </div>
         
-        <div className="flex items-center space-x-3 bg-white dark:bg-slate-900 p-2 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
-           <Calendar size={16} className="text-purple-600 ml-2" />
-           <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="bg-transparent text-[10px] font-black uppercase outline-none" />
-           <span className="text-slate-300">→</span>
-           <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="bg-transparent text-[10px] font-black uppercase outline-none" />
+        <div className="flex items-center space-x-3">
+          <div className="flex bg-white dark:bg-slate-900 p-1.5 rounded-2xl border shadow-sm">
+             <button onClick={() => setActiveFilter('all')} className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase transition-all ${activeFilter === 'all' ? 'bg-slate-900 text-white' : 'text-slate-400'}`}>Tous</button>
+             <button onClick={() => setActiveFilter('quotation')} className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase transition-all ${activeFilter === 'quotation' ? 'bg-blue-600 text-white' : 'text-slate-400'}`}>Devis / Resa</button>
+             <button onClick={() => setActiveFilter('confirmed')} className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase transition-all ${activeFilter === 'confirmed' ? 'bg-emerald-600 text-white' : 'text-slate-400'}`}>Factures</button>
+          </div>
+          <button onClick={startEventReservation} className="bg-purple-600 text-white px-6 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl flex items-center hover:bg-purple-700">
+             <PlusCircle size={18} className="mr-2" /> Réserver Événement
+          </button>
         </div>
       </div>
 
       <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] border-2 border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden flex-1">
-        <div className="p-6 border-b border-slate-100 dark:border-slate-800 bg-slate-50/30">
-          <div className="relative w-full max-w-xl">
+        <div className="p-6 border-b border-slate-100 dark:border-slate-800 bg-slate-50/30 flex flex-col md:flex-row gap-4 justify-between items-center">
+          <div className="relative w-full max-w-md">
              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-             <input value={searchTerm} onChange={e => setSearchTerm(e.target.value)} placeholder="Rechercher un ticket (Client, N°...)" className="w-full pl-12 pr-6 py-3.5 bg-white dark:bg-slate-800 border-none rounded-2xl text-xs font-bold outline-none shadow-sm focus:ring-2 focus:ring-purple-500" />
+             <input value={searchTerm} onChange={e => setSearchTerm(e.target.value)} placeholder="Rechercher (Client, N°...)" className="w-full pl-12 pr-6 py-3 bg-white dark:bg-slate-800 border-none rounded-2xl text-xs font-bold outline-none shadow-sm" />
+          </div>
+          <div className="flex items-center space-x-3 bg-white dark:bg-slate-800 p-2 rounded-2xl border shadow-sm">
+             <Calendar size={14} className="text-purple-600 ml-2" />
+             <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="bg-transparent text-[9px] font-black uppercase outline-none" />
+             <span className="text-slate-300">→</span>
+             <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="bg-transparent text-[9px] font-black uppercase outline-none" />
           </div>
         </div>
 
@@ -103,58 +164,52 @@ const Sales: React.FC<Props> = ({ sales, expenses = [], onUpdate, onRefundSale, 
           <table className="w-full text-left">
             <thead>
                <tr className="bg-slate-900 text-white">
-                  <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest">Date / Heure</th>
-                  <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest">Référence</th>
-                  <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest">Client / Zone</th>
-                  <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-center">Paiement</th>
+                  <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest">Document</th>
+                  <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest">Client</th>
+                  <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-center">Catégorie</th>
                   <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-right">Total TTC</th>
                   <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-right">Actions</th>
                </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
               {filteredSales.map((sale) => (
-                <tr key={sale.id} className={`hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-all group ${sale.status === 'refunded' ? 'bg-rose-50/10 grayscale-[0.3]' : ''}`}>
-                  <td className="px-8 py-6">
-                    <div className="flex flex-col text-[10px] font-black uppercase text-slate-400">
-                      <span>{sale.date.split('T')[0]}</span>
-                      <span className="text-[9px] text-slate-300">{new Date(sale.date).toLocaleTimeString()}</span>
-                    </div>
-                  </td>
-                  <td className="px-8 py-6 text-xs font-mono font-black text-purple-600">
-                    <span className={sale.status === 'refunded' ? 'line-through text-rose-400' : ''}>#{sale.id.slice(-8)}</span>
-                  </td>
+                <tr key={sale.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-all group">
                   <td className="px-8 py-6">
                     <div className="flex flex-col">
-                       <span className={`text-sm font-black uppercase ${sale.status === 'refunded' ? 'line-through text-slate-300' : 'text-slate-800 dark:text-slate-200'}`}>{sale.customer}</span>
-                       <span className="text-[9px] font-bold text-slate-400 uppercase">{sale.orderLocation || 'Comptoir'}</span>
+                       <span className="text-xs font-mono font-black text-purple-600">#{sale.id.slice(-8)}</span>
+                       <span className="text-[9px] font-bold text-slate-400">{new Date(sale.date).toLocaleDateString()}</span>
                     </div>
                   </td>
+                  <td className="px-8 py-6">
+                    <span className="text-sm font-black uppercase text-slate-800 dark:text-slate-200">{sale.customer}</span>
+                  </td>
                   <td className="px-8 py-6 text-center">
-                    <span className="px-3 py-1 bg-slate-100 dark:bg-slate-800 rounded-lg text-[8px] font-black uppercase text-slate-500">
-                      {sale.paymentMethod || 'Non défini'}
-                    </span>
+                    <div className="flex flex-col items-center">
+                      <span className={`px-3 py-1 rounded-lg text-[8px] font-black uppercase ${sale.status === 'quotation' ? 'bg-blue-50 text-blue-600 border border-blue-100' : 'bg-emerald-50 text-emerald-600 border border-emerald-100'}`}>
+                        {sale.status === 'quotation' ? (sale.eventDetails ? 'Réservation' : 'Devis') : 'Facture'}
+                      </span>
+                      {sale.eventDetails && (
+                        <span className="text-[7px] font-black text-slate-400 uppercase mt-1">🗓 {new Date(sale.eventDetails.date).toLocaleDateString()}</span>
+                      )}
+                    </div>
                   </td>
                   <td className="px-8 py-6 text-right font-black text-sm">
-                    <span className={sale.status === 'refunded' ? 'text-rose-300 line-through' : 'text-slate-900 dark:text-white'}>
-                      {sale.total.toLocaleString()} {config.currency}
-                    </span>
+                    {sale.total.toLocaleString()} {config.currency}
                   </td>
                   <td className="px-8 py-6 text-right">
                     <div className="flex items-center justify-end space-x-2">
-                       {sale.status !== 'refunded' && (
-                         <>
-                           {canEdit && (
-                             <button onClick={() => setEditingSale(sale)} className="p-2.5 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white rounded-xl transition-all shadow-sm" title="Modifier la commande">
-                               <Edit3 size={18} />
-                             </button>
-                           )}
-                           <button onClick={() => { if(confirm("Confirmer le remboursement intégral de cette vente ?")) onRefundSale(sale.id); }} className="p-2.5 bg-rose-50 text-rose-500 hover:bg-rose-500 hover:text-white rounded-xl transition-all shadow-sm" title="Rembourser / Annuler">
-                             <RotateCcw size={18} />
-                           </button>
-                         </>
+                       {sale.status === 'quotation' && (
+                         <button onClick={() => convertToInvoice(sale)} className="p-2.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white rounded-xl transition-all shadow-sm" title="Convertir en Facture">
+                           <FileCheck size={18} />
+                         </button>
                        )}
-                       {sale.status === 'refunded' && (
-                         <span className="text-[8px] font-black text-rose-500 uppercase bg-rose-50 px-2 py-1 rounded-md border border-rose-100">ANNULÉ / AVOIR</span>
+                       <button onClick={() => setEditingSale(sale)} className="p-2.5 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white rounded-xl transition-all shadow-sm" title="Modifier">
+                         <Edit3 size={18} />
+                       </button>
+                       {sale.status !== 'refunded' && sale.status !== 'quotation' && (
+                         <button onClick={() => { if(confirm("Annuler cette vente ?")) onRefundSale(sale.id); }} className="p-2.5 bg-rose-50 text-rose-500 hover:bg-rose-500 hover:text-white rounded-xl transition-all shadow-sm">
+                           <RotateCcw size={18} />
+                         </button>
                        )}
                     </div>
                   </td>
@@ -165,67 +220,136 @@ const Sales: React.FC<Props> = ({ sales, expenses = [], onUpdate, onRefundSale, 
         </div>
       </div>
 
-      {/* MODALE D'ÉDITION DE VENTE */}
+      {/* MODALE D'ÉDITION DE DEVIS / VENTE / RÉSERVATION */}
       {editingSale && (
         <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[300] flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 w-full max-w-2xl rounded-[3rem] shadow-2xl border border-white/10 overflow-hidden animate-scaleIn">
-             <div className="p-8 border-b dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
-                <div className="flex items-center space-x-4">
-                   <div className="p-3 bg-blue-600 text-white rounded-2xl shadow-lg"><Edit3 size={24}/></div>
-                   <div>
-                      <h3 className="text-xl font-black uppercase tracking-tighter">Rectifier Vente</h3>
-                      <p className="text-[10px] font-black text-slate-400 uppercase">#{editingSale.id.slice(-8)}</p>
+          <div className="bg-white dark:bg-slate-900 w-full max-w-5xl rounded-[3rem] shadow-2xl border border-white/10 overflow-hidden animate-scaleIn flex flex-col md:flex-row h-[92vh]">
+             {/* Panneau de gauche: Sélection produits */}
+             <div className="w-full md:w-1/3 border-r dark:border-slate-800 flex flex-col overflow-hidden bg-slate-50 dark:bg-slate-900/50">
+                <div className="p-6 border-b dark:border-slate-800 bg-white dark:bg-slate-800/30">
+                   <h3 className="font-black uppercase text-xs mb-4">Articles du Menu</h3>
+                   <div className="relative">
+                      <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"/>
+                      <input type="text" placeholder="Rechercher..." className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-900 rounded-xl text-xs border-none shadow-sm focus:ring-2 focus:ring-purple-500 outline-none" />
                    </div>
                 </div>
-                <button onClick={() => setEditingSale(null)}><X size={28} className="text-slate-400 hover:text-rose-500"/></button>
-             </div>
-             
-             <form onSubmit={handleUpdateSale} className="p-10 space-y-6">
-                <div className="space-y-4 max-h-[350px] overflow-y-auto pr-4 scrollbar-hide">
-                   {editingSale.items?.map((item) => (
-                     <div key={item.productId} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700">
-                        <div className="flex-1">
-                           <p className="text-xs font-black uppercase text-slate-800 dark:text-white">{item.name}</p>
-                           <p className="text-[10px] font-bold text-slate-400">Prix Unit: {item.price} {config.currency}</p>
+                <div className="flex-1 overflow-y-auto p-4 grid grid-cols-1 gap-2 scrollbar-hide">
+                   {products.map(p => (
+                     <button key={p.id} onClick={() => addItemToSale(p)} className="p-3 bg-white dark:bg-slate-800 rounded-2xl flex items-center justify-between hover:border-purple-400 border-2 border-transparent transition-all group text-left shadow-sm">
+                        <div className="flex flex-col min-w-0">
+                           <span className="text-[10px] font-black uppercase truncate text-slate-700 dark:text-white group-hover:text-purple-600">{p.name}</span>
+                           <span className="text-[8px] font-bold text-slate-400">{p.price} {config.currency}</span>
                         </div>
-                        <div className="flex items-center space-x-4">
-                           <div className="flex items-center bg-white dark:bg-slate-900 rounded-xl p-1 shadow-sm border">
-                              <button type="button" onClick={() => adjustItemQty(item.productId, -1)} className="p-1.5 text-slate-400 hover:text-rose-500"><MinusCircle size={18}/></button>
-                              <span className="px-3 font-black text-sm">{item.quantity}</span>
-                              <button type="button" onClick={() => adjustItemQty(item.productId, 1)} className="p-1.5 text-slate-400 hover:text-blue-600"><PlusCircle size={18}/></button>
-                           </div>
-                           <button type="button" onClick={() => removeItem(item.productId)} className="text-rose-300 hover:text-rose-600"><Trash2 size={18}/></button>
-                        </div>
-                     </div>
+                        <Plus size={14} className="text-slate-300 group-hover:text-purple-600 shrink-0 ml-2"/>
+                     </button>
                    ))}
                 </div>
+             </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                   <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase text-slate-400">Mode de paiement</label>
-                      <select 
-                        value={editingSale.paymentMethod} 
-                        onChange={e => setEditingSale({...editingSale, paymentMethod: e.target.value as any})}
-                        className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-xl font-bold border-none outline-none"
-                      >
-                         <option value="Especes">Espèces</option>
-                         <option value="Bankily">Bankily</option>
-                         <option value="Masrvi">Masrvi</option>
-                         <option value="Carte">Carte Bancaire</option>
-                      </select>
+             {/* Panneau de droite: Détails du document */}
+             <div className="flex-1 flex flex-col overflow-hidden bg-white dark:bg-slate-900">
+                <div className="p-6 border-b dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
+                   <div>
+                      <h3 className="text-lg font-black uppercase tracking-tighter">
+                         {editingSale.status === 'quotation' ? (editingSale.eventDetails ? 'Réservation Événement' : 'Nouveau Devis') : 'Édition Facture'}
+                      </h3>
+                      <p className="text-[9px] font-black text-slate-400 uppercase">Document #{editingSale.id?.slice(-8)}</p>
                    </div>
-                   <div className="text-right flex flex-col justify-end">
-                      <p className="text-[10px] font-black uppercase text-slate-400">Nouveau Total</p>
-                      <p className="text-3xl font-black text-blue-600">
-                        {editingSale.items?.reduce((acc, item) => acc + (item.price * item.quantity), 0).toLocaleString()} <span className="text-sm">{config.currency}</span>
-                      </p>
-                   </div>
+                   <button onClick={() => setEditingSale(null)} className="p-2 hover:bg-rose-50 rounded-full transition-colors"><X size={24} className="text-slate-400"/></button>
                 </div>
+                
+                <form onSubmit={handleSaveSale} className="flex-1 flex flex-col p-6 space-y-6 overflow-hidden">
+                   <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                         <label className="text-[9px] font-black uppercase text-slate-400 ml-1">Bénéficiaire</label>
+                         <input required value={editingSale.customer} onChange={e => setEditingSale({...editingSale, customer: e.target.value})} className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-xl font-bold text-xs" placeholder="Nom du client..." />
+                      </div>
+                      <div className="space-y-1">
+                         <label className="text-[9px] font-black uppercase text-slate-400 ml-1">Émission du document</label>
+                         <input type="date" value={editingSale.date?.split('T')[0]} onChange={e => setEditingSale({...editingSale, date: new Date(e.target.value).toISOString()})} className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-xl font-bold text-xs" />
+                      </div>
+                   </div>
 
-                <button type="submit" className="w-full py-5 bg-blue-600 text-white rounded-[1.5rem] font-black uppercase text-xs shadow-xl flex items-center justify-center">
-                   <Save size={18} className="mr-3" /> Enregistrer les rectifications
-                </button>
-             </form>
+                   {/* SECTION ÉVÉNEMENT SPÉCIFIQUE */}
+                   {editingSale.eventDetails && (
+                     <div className="p-5 bg-purple-50 dark:bg-purple-900/10 rounded-3xl border border-purple-100 dark:border-purple-800/50 space-y-4">
+                        <div className="flex items-center space-x-2 text-purple-600 mb-2">
+                           <FileSignature size={16} />
+                           <h4 className="text-[10px] font-black uppercase tracking-widest">Détails de la Réservation</h4>
+                        </div>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                           <div className="space-y-1">
+                              <label className="text-[8px] font-black text-slate-400 uppercase">Date Événement</label>
+                              <div className="relative">
+                                <Calendar size={12} className="absolute left-3 top-1/2 -translate-y-1/2 text-purple-400"/>
+                                <input type="date" value={editingSale.eventDetails.date} onChange={e => setEditingSale({...editingSale, eventDetails: {...editingSale.eventDetails!, date: e.target.value}})} className="w-full pl-8 pr-3 py-2 bg-white dark:bg-slate-800 rounded-lg text-[10px] font-bold outline-none" />
+                              </div>
+                           </div>
+                           <div className="space-y-1">
+                              <label className="text-[8px] font-black text-slate-400 uppercase">Type</label>
+                              <select value={editingSale.eventDetails.type} onChange={e => setEditingSale({...editingSale, eventDetails: {...editingSale.eventDetails!, type: e.target.value}})} className="w-full px-3 py-2 bg-white dark:bg-slate-800 rounded-lg text-[10px] font-bold outline-none">
+                                 <option>Mariage</option><option>Baptême</option><option>Anniversaire</option><option>Séminaire</option><option>Autre</option>
+                              </select>
+                           </div>
+                           <div className="space-y-1">
+                              <label className="text-[8px] font-black text-slate-400 uppercase">Convives</label>
+                              <div className="relative">
+                                <Users size={12} className="absolute left-3 top-1/2 -translate-y-1/2 text-purple-400"/>
+                                <input type="number" value={editingSale.eventDetails.guests} onChange={e => setEditingSale({...editingSale, eventDetails: {...editingSale.eventDetails!, guests: parseInt(e.target.value)}})} className="w-full pl-8 pr-3 py-2 bg-white dark:bg-slate-800 rounded-lg text-[10px] font-bold outline-none" />
+                              </div>
+                           </div>
+                           <div className="space-y-1">
+                              <label className="text-[8px] font-black text-slate-400 uppercase">Lieu</label>
+                              <div className="relative">
+                                <MapPin size={12} className="absolute left-3 top-1/2 -translate-y-1/2 text-purple-400"/>
+                                <input placeholder="Salle..." value={editingSale.eventDetails.location} onChange={e => setEditingSale({...editingSale, eventDetails: {...editingSale.eventDetails!, location: e.target.value}})} className="w-full pl-8 pr-3 py-2 bg-white dark:bg-slate-800 rounded-lg text-[10px] font-bold outline-none" />
+                              </div>
+                           </div>
+                        </div>
+                     </div>
+                   )}
+
+                   <div className="flex-1 overflow-y-auto space-y-2 pr-2 scrollbar-hide">
+                      <p className="text-[9px] font-black uppercase text-slate-400 border-b pb-2 flex items-center justify-between">
+                         Lignes de Commande
+                         <span className="text-purple-600">{editingSale.items?.length || 0} Article(s)</span>
+                      </p>
+                      {editingSale.items?.map((item, idx) => (
+                        <div key={idx} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border group hover:border-purple-200 transition-colors">
+                           <div className="flex-1 min-w-0">
+                              <p className="text-[10px] font-black uppercase truncate">{item.name}</p>
+                              <p className="text-[8px] font-bold text-slate-400">{item.price} {config.currency}</p>
+                           </div>
+                           <div className="flex items-center space-x-3">
+                              <button type="button" onClick={() => adjustItemQty(item.productId, -1)} className="p-1 bg-white dark:bg-slate-900 rounded-lg shadow-sm hover:text-rose-500"><Minus size={12}/></button>
+                              <span className="font-black text-xs w-4 text-center">{item.quantity}</span>
+                              <button type="button" onClick={() => adjustItemQty(item.productId, 1)} className="p-1 bg-white dark:bg-slate-900 rounded-lg shadow-sm hover:text-purple-600"><Plus size={12}/></button>
+                              <button type="button" onClick={() => setEditingSale({...editingSale, items: editingSale.items?.filter(i => i.productId !== item.productId)})} className="text-slate-300 hover:text-rose-500 ml-2 transition-colors"><Trash2 size={14}/></button>
+                           </div>
+                        </div>
+                      ))}
+                      {editingSale.items?.length === 0 && (
+                        <div className="h-48 flex flex-col items-center justify-center opacity-20">
+                           <ShoppingCart size={32}/>
+                           <p className="text-[9px] font-black uppercase mt-2">Aucun article</p>
+                        </div>
+                      )}
+                   </div>
+
+                   <div className="pt-6 border-t dark:border-slate-800 flex items-center justify-between">
+                      <div className="flex flex-col">
+                         <span className="text-[9px] font-black uppercase text-slate-400">Total {editingSale.status === 'quotation' ? 'Estimé' : 'HT'}</span>
+                         <span className="text-2xl font-black text-purple-600">{(editingSale.items?.reduce((acc, i) => acc + i.price * i.quantity, 0) || 0).toLocaleString()} <span className="text-xs">{config.currency}</span></span>
+                      </div>
+                      <div className="flex items-center space-x-3">
+                         <button type="button" onClick={() => setEditingSale(null)} className="px-6 py-4 bg-slate-100 dark:bg-slate-800 rounded-2xl font-black uppercase text-[9px]">Annuler</button>
+                         <button type="submit" className="px-10 py-4 bg-slate-900 text-white rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-xl flex items-center hover:bg-black">
+                            <Save size={18} className="mr-3" /> Enregistrer le document
+                         </button>
+                      </div>
+                   </div>
+                </form>
+             </div>
           </div>
         </div>
       )}
