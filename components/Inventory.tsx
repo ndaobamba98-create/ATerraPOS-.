@@ -117,7 +117,7 @@ const Inventory: React.FC<Props> = ({ products, onUpdate, config, userRole, user
               <div className="space-y-4">
                 <div className="space-y-1">
                   <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Désignation</label>
-                  <input required value={editingProduct.name} onChange={e => setEditingProduct({...editingProduct, name: e.target.value})} placeholder="Nom du produit..." className="w-full px-4 py-3 border-2 rounded-xl dark:bg-slate-800 dark:border-slate-700 font-bold outline-none focus:border-purple-500" />
+                  <input required value={editingProduct.name} onChange={e => setEditingProduct({...editingProduct, name: e.target.value})} placeholder="Nom du produit..." className="w-full px-4 py-3 border-2 rounded-xl dark:bg-slate-800 dark:border-slate-700 font-bold outline-none focus:border-accent" />
                 </div>
                 
                 <div className="grid grid-cols-2 gap-4">
@@ -146,7 +146,7 @@ const Inventory: React.FC<Props> = ({ products, onUpdate, config, userRole, user
                   </div>
                 </div>
               </div>
-              <button type="submit" className="w-full py-4 bg-purple-600 text-white rounded-xl font-black uppercase text-xs tracking-widest shadow-lg active:scale-95 transition-all">Enregistrer le produit</button>
+              <button type="submit" className="w-full py-4 bg-accent text-white rounded-xl font-black uppercase text-xs tracking-widest shadow-lg active:scale-95 transition-all hover:opacity-90">Enregistrer le produit</button>
             </form>
           </div>
         </div>
@@ -180,17 +180,17 @@ const Inventory: React.FC<Props> = ({ products, onUpdate, config, userRole, user
           </button>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-            <input type="text" placeholder="Rechercher..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10 pr-4 py-2.5 bg-white dark:bg-slate-800 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-purple-500" />
+            <input type="text" placeholder="Rechercher..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10 pr-4 py-2.5 bg-white dark:bg-slate-800 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-accent" />
           </div>
-          {canManage && <button onClick={handleOpenAddModal} className="bg-purple-600 text-white px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest shadow-lg flex items-center"><Plus size={18} className="mr-2" /> Nouveau Plat</button>}
+          {canManage && <button onClick={handleOpenAddModal} className="bg-accent text-white px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest shadow-lg flex items-center hover:opacity-90"><Plus size={18} className="mr-2" /> Nouveau Plat</button>}
           <button onClick={handleExportExcel} className="p-2.5 bg-white dark:bg-slate-800 border rounded-xl shadow-sm hover:bg-slate-50 transition-all"><Download size={18}/></button>
         </div>
       </div>
 
       <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
         <table className="w-full text-left">
-          <thead className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
-            <tr className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+          <thead className="bg-accent text-white border-b border-slate-100 dark:border-slate-800">
+            <tr className="text-[10px] font-black uppercase tracking-widest">
               <th className="px-8 py-5">Aperçu</th>
               <th className="px-8 py-5">Désignation</th>
               <th className="px-8 py-5">Catégorie</th>
@@ -220,18 +220,18 @@ const Inventory: React.FC<Props> = ({ products, onUpdate, config, userRole, user
                     </div>
                   </td>
                   <td className="px-8 py-6">
-                    <span className="bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-lg text-[9px] font-black uppercase">{p.category}</span>
+                    <span className="bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest text-accent">{p.category}</span>
                   </td>
                   <td className="px-8 py-6 text-center">
                     <span className={`px-3 py-1 rounded-xl text-xs font-black ${isLowStock ? 'bg-rose-100 text-rose-600 dark:bg-rose-900/30 ring-1 ring-rose-500/20' : 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30'}`}>
                       {p.stock}
                     </span>
                   </td>
-                  <td className="px-8 py-6 text-right font-black text-purple-600">{p.price.toLocaleString()} {config.currency}</td>
+                  <td className="px-8 py-6 text-right font-black text-accent">{p.price.toLocaleString()} {config.currency}</td>
                   {canManage && (
                     <td className="px-8 py-6 text-right">
                       <div className="flex items-center justify-end space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onClick={() => handleOpenEditModal(p)} className="p-2 text-slate-400 hover:text-purple-600 transition-colors"><Edit3 size={16} /></button>
+                        <button onClick={() => handleOpenEditModal(p)} className="p-2 text-slate-400 hover:text-accent transition-colors"><Edit3 size={16} /></button>
                         <button onClick={() => setDeleteConfirm({ id: p.id, name: p.name })} className="p-2 text-slate-400 hover:text-rose-600 transition-colors"><Trash2 size={16} /></button>
                       </div>
                     </td>

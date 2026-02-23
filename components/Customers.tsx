@@ -134,7 +134,7 @@ const Customers: React.FC<Props> = ({ customers, onUpdate, config, userRole, use
              <FileSpreadsheet size={22} className="text-emerald-600" />
            </button>
            {canManage && (
-             <button onClick={handleOpenAddModal} className="bg-purple-600 text-white px-8 py-4 rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl hover:bg-purple-700 transition-all flex items-center">
+             <button onClick={handleOpenAddModal} className="bg-accent text-white px-8 py-4 rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl hover:opacity-90 transition-all flex items-center">
                <Plus size={20} className="mr-2" /> Nouveau Compte
              </button>
            )}
@@ -156,11 +156,11 @@ const Customers: React.FC<Props> = ({ customers, onUpdate, config, userRole, use
                <p className="text-2xl font-black">{globalStats.totalDettes.toLocaleString()} <span className="text-xs opacity-40">{config.currency}</span></p>
             </div>
          </div>
-         <div className="bg-slate-900 text-white p-8 rounded-[2.5rem] flex items-center space-x-6 relative overflow-hidden group">
-            <div className="absolute right-0 top-0 w-32 h-32 bg-purple-600/10 rounded-full blur-3xl group-hover:bg-purple-600/20 transition-all"></div>
+         <div className="bg-accent text-white p-8 rounded-[2.5rem] flex items-center space-x-6 relative overflow-hidden group shadow-xl shadow-accent/20">
+            <div className="absolute right-0 top-0 w-32 h-32 bg-white/10 rounded-full blur-3xl group-hover:bg-white/20 transition-all"></div>
             <div className="p-4 bg-white/10 rounded-2xl"><Users size={24}/></div>
             <div className="relative z-10">
-               <p className="text-[10px] font-black text-purple-400 uppercase tracking-widest">Total Portefeuille</p>
+               <p className="text-[10px] font-black text-white/70 uppercase tracking-widest">Total Portefeuille</p>
                <p className="text-2xl font-black">{customers.length} Clients actifs</p>
             </div>
          </div>
@@ -170,22 +170,22 @@ const Customers: React.FC<Props> = ({ customers, onUpdate, config, userRole, use
         <div className="p-8 border-b flex flex-col md:flex-row md:items-center justify-between gap-6 bg-slate-50/50 dark:bg-slate-900/30">
           <div className="relative flex-1 max-w-xl">
             <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
-            <input value={searchTerm} onChange={e => setSearchTerm(e.target.value)} placeholder="Chercher par nom ou numéro..." className="w-full pl-14 pr-8 py-4 bg-white dark:bg-slate-800 border-none rounded-2xl text-xs font-bold outline-none shadow-sm transition-all focus:ring-2 focus:ring-purple-500" />
+            <input value={searchTerm} onChange={e => setSearchTerm(e.target.value)} placeholder="Chercher par nom ou numéro..." className="w-full pl-14 pr-8 py-4 bg-white dark:bg-slate-800 border-none rounded-2xl text-xs font-bold outline-none shadow-sm transition-all focus:ring-2 focus:ring-accent" />
           </div>
           <div className="flex bg-white dark:bg-slate-800 p-1 rounded-2xl border">
-             <button onClick={() => setFilterType('all')} className={`px-5 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${filterType === 'all' ? 'bg-purple-600 text-white' : 'text-slate-400'}`}>Tous</button>
-             <button onClick={() => setFilterType('debtors')} className={`px-5 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${filterType === 'debtors' ? 'bg-rose-600 text-white' : 'text-slate-400'}`}>Débiteurs</button>
-             <button onClick={() => setFilterType('creditors')} className={`px-5 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${filterType === 'creditors' ? 'bg-emerald-600 text-white' : 'text-slate-400'}`}>Créditeurs</button>
+             <button onClick={() => setFilterType('all')} className={`px-5 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${filterType === 'all' ? 'bg-accent text-white shadow-md' : 'text-slate-400'}`}>Tous</button>
+             <button onClick={() => setFilterType('debtors')} className={`px-5 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${filterType === 'debtors' ? 'bg-rose-600 text-white shadow-md' : 'text-slate-400'}`}>Débiteurs</button>
+             <button onClick={() => setFilterType('creditors')} className={`px-5 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${filterType === 'creditors' ? 'bg-emerald-600 text-white shadow-md' : 'text-slate-400'}`}>Créditeurs</button>
           </div>
         </div>
 
         <div className="overflow-x-auto flex-1">
           <table className="w-full text-left">
             <thead>
-              <tr className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b bg-slate-50/20">
+              <tr className="bg-accent text-white text-[10px] font-black uppercase tracking-widest">
                 <th className="px-10 py-6 w-12">
-                   <button onClick={toggleSelectAll} className="p-1 rounded-md text-slate-400 hover:bg-slate-100">
-                      {selectedIds.length === filteredCustomers.length && filteredCustomers.length > 0 ? <CheckSquare size={18} className="text-purple-600" /> : <Square size={18} />}
+                   <button onClick={toggleSelectAll} className="p-1 rounded-md text-white/70 hover:text-white transition-colors">
+                      {selectedIds.length === filteredCustomers.length && filteredCustomers.length > 0 ? <CheckSquare size={18} /> : <Square size={18} />}
                    </button>
                 </th>
                 <th className="px-4 py-6">Profil Client</th>
@@ -197,15 +197,15 @@ const Customers: React.FC<Props> = ({ customers, onUpdate, config, userRole, use
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
               {filteredCustomers.map((c) => (
-                <tr key={c.id} className={`hover:bg-slate-50/80 dark:hover:bg-slate-900/50 transition-all group ${selectedIds.includes(c.id) ? 'bg-purple-50/30 dark:bg-purple-900/10' : ''}`}>
+                <tr key={c.id} className={`hover:bg-slate-50/80 dark:hover:bg-slate-900/50 transition-all group ${selectedIds.includes(c.id) ? 'bg-accent/5 dark:bg-accent/10' : ''}`}>
                   <td className="px-10 py-6">
-                     <button onClick={() => toggleSelect(c.id)} className="p-1 rounded-md text-slate-300 hover:text-purple-600">
-                        {selectedIds.includes(c.id) ? <CheckSquare size={18} className="text-purple-600" /> : <Square size={18} />}
+                     <button onClick={() => toggleSelect(c.id)} className="p-1 rounded-md text-slate-300 hover:text-accent">
+                        {selectedIds.includes(c.id) ? <CheckSquare size={18} className="text-accent" /> : <Square size={18} />}
                      </button>
                   </td>
                   <td className="px-4 py-6">
                     <div className="flex items-center space-x-4">
-                      <div className="w-12 h-12 rounded-2xl bg-purple-100 dark:bg-purple-900/20 text-purple-600 flex items-center justify-center font-black text-lg">
+                      <div className="w-12 h-12 rounded-2xl bg-accent/10 dark:bg-accent/20 text-accent flex items-center justify-center font-black text-lg">
                         {c.name.charAt(0)}
                       </div>
                       <div className="flex flex-col">
@@ -239,7 +239,7 @@ const Customers: React.FC<Props> = ({ customers, onUpdate, config, userRole, use
                   {canManage && (
                     <td className="px-10 py-6 text-right">
                       <div className="flex items-center justify-end space-x-2 opacity-0 group-hover:opacity-100 transition-all">
-                        <button onClick={() => handleOpenEditModal(c)} className="p-3 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-2xl text-slate-400 hover:text-purple-600 hover:border-purple-200 transition-all shadow-sm">
+                        <button onClick={() => handleOpenEditModal(c)} className="p-3 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-2xl text-slate-400 hover:text-accent hover:border-accent/20 transition-all shadow-sm">
                           <Edit3 size={18} />
                         </button>
                         <button onClick={() => handleDeleteCustomer(c.id, c.name)} className="p-3 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-2xl text-slate-400 hover:text-rose-500 hover:border-rose-200 transition-all shadow-sm">
@@ -266,7 +266,7 @@ const Customers: React.FC<Props> = ({ customers, onUpdate, config, userRole, use
           <div className="bg-white dark:bg-slate-900 w-full max-w-lg rounded-[3rem] shadow-2xl overflow-hidden border border-white/10 animate-scaleIn">
             <div className="p-8 border-b dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
                <div className="flex items-center space-x-4">
-                  <div className="p-3 bg-purple-600 text-white rounded-2xl shadow-lg"><UserCircle2 size={24}/></div>
+                  <div className="p-3 bg-accent text-white rounded-2xl shadow-lg"><UserCircle2 size={24}/></div>
                   <h3 className="text-xl font-black uppercase tracking-tighter">Fiche Compte Client</h3>
                </div>
                <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-rose-50 hover:text-rose-600 rounded-full transition-all"><X size={28}/></button>
@@ -275,33 +275,33 @@ const Customers: React.FC<Props> = ({ customers, onUpdate, config, userRole, use
             <form onSubmit={handleSaveCustomer} className="p-10 space-y-6">
                <div className="space-y-2">
                   <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Nom complet du client</label>
-                  <input required autoFocus value={editingCustomer.name || ''} onChange={e => setEditingCustomer({...editingCustomer, name: e.target.value})} className="w-full px-6 py-4 bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-purple-500 rounded-2xl font-black outline-none transition-all" placeholder="ex: Sidi El Moctar" />
+                  <input required autoFocus value={editingCustomer.name || ''} onChange={e => setEditingCustomer({...editingCustomer, name: e.target.value})} className="w-full px-6 py-4 bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-accent rounded-2xl font-black outline-none transition-all" placeholder="ex: Sidi El Moctar" />
                </div>
 
                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                  <div className="space-y-2">
                     <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Téléphone Mobile</label>
-                    <input required value={editingCustomer.phone || ''} onChange={e => setEditingCustomer({...editingCustomer, phone: e.target.value})} className="w-full px-6 py-4 bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-purple-500 rounded-2xl font-black outline-none transition-all" placeholder="44XXXXXX" />
+                    <input required value={editingCustomer.phone || ''} onChange={e => setEditingCustomer({...editingCustomer, phone: e.target.value})} className="w-full px-6 py-4 bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-accent rounded-2xl font-black outline-none transition-all" placeholder="44XXXXXX" />
                  </div>
                  <div className="space-y-2">
                     <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Solde Initial</label>
-                    <input type="number" value={editingCustomer.balance ?? ''} onChange={e => setEditingCustomer({...editingCustomer, balance: parseFloat(e.target.value) || 0})} className="w-full px-6 py-4 bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-purple-500 rounded-2xl font-black outline-none transition-all text-purple-600" />
+                    <input type="number" value={editingCustomer.balance ?? ''} onChange={e => setEditingCustomer({...editingCustomer, balance: parseFloat(e.target.value) || 0})} className="w-full px-6 py-4 bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-accent rounded-2xl font-black outline-none transition-all text-accent" />
                  </div>
                </div>
 
                <div className="space-y-2">
                   <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Email (Optionnel)</label>
-                  <input type="email" value={editingCustomer.email || ''} onChange={e => setEditingCustomer({...editingCustomer, email: e.target.value})} className="w-full px-6 py-4 bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-purple-500 rounded-2xl font-black outline-none transition-all" placeholder="client@domaine.com" />
+                  <input type="email" value={editingCustomer.email || ''} onChange={e => setEditingCustomer({...editingCustomer, email: e.target.value})} className="w-full px-6 py-4 bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-accent rounded-2xl font-black outline-none transition-all" placeholder="client@domaine.com" />
                </div>
 
                <div className="bg-slate-900 text-white p-6 rounded-3xl border border-white/10 flex items-center space-x-4">
-                  <div className="p-3 bg-purple-500/10 text-purple-400 rounded-xl"><AlertCircle size={24}/></div>
+                  <div className="p-3 bg-accent/10 text-accent rounded-xl"><AlertCircle size={24}/></div>
                   <p className="text-[10px] font-bold text-slate-400 uppercase leading-relaxed">
                     Un solde négatif signifie que le client doit de l'argent à l'établissement. Un solde positif est une avance (crédit).
                   </p>
                </div>
 
-               <button type="submit" className="w-full py-5 bg-purple-600 text-white rounded-3xl font-black uppercase text-xs tracking-[0.2em] shadow-xl hover:bg-purple-700 active:scale-95 transition-all flex items-center justify-center">
+               <button type="submit" className="w-full py-5 bg-accent text-white rounded-3xl font-black uppercase text-xs tracking-[0.2em] shadow-xl hover:opacity-90 active:scale-95 transition-all flex items-center justify-center">
                   <Save size={18} className="mr-3" /> Enregistrer le compte
                </button>
             </form>

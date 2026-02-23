@@ -315,10 +315,10 @@ const POS: React.FC<Props> = ({ products, customers, config, session, onOpenSess
     }
   };
 
-  const BilletageView = ({ title, onConfirm, onCancel, expected }: { title: string, onConfirm: () => void, onCancel?: () => void, expected?: number }) => (
+  const BilletageView = ({ title, onConfirm, onCancel, expected, opening }: { title: string, onConfirm: () => void, onCancel?: () => void, expected?: number, opening?: number }) => (
     <div className="h-full flex items-center justify-center p-8 bg-slate-50 dark:bg-slate-950 overflow-y-auto">
-      <div className="bg-white dark:bg-slate-900 w-full max-w-4xl rounded-[4rem] border-2 border-slate-100 dark:border-slate-800 shadow-2xl overflow-hidden flex flex-col md:flex-row">
-        <div className="p-12 md:w-2/3 space-y-8">
+      <div className="bg-white dark:bg-slate-900 w-full max-w-5xl rounded-[4rem] border-2 border-slate-100 dark:border-slate-800 shadow-2xl overflow-hidden flex flex-col md:flex-row">
+        <div className="p-12 md:w-3/5 space-y-8">
            <div className="flex items-center space-x-4">
               <div className="p-4 bg-purple-600 text-white rounded-3xl shadow-lg"><Calculator size={32}/></div>
               <div>
@@ -351,26 +351,34 @@ const POS: React.FC<Props> = ({ products, customers, config, session, onOpenSess
            </div>
         </div>
 
-        <div className="bg-slate-900 md:w-1/3 p-12 text-white flex flex-col justify-between">
+        <div className="bg-slate-900 md:w-2/5 p-12 text-white flex flex-col justify-between">
            <div className="space-y-8">
               <div>
                  <p className="text-[10px] font-black text-purple-400 uppercase tracking-widest mb-2">Total Compté</p>
                  <h3 className="text-5xl font-black tracking-tighter">{countedTotal.toLocaleString()} <span className="text-sm opacity-40">{config.currency}</span></h3>
               </div>
 
-              {expected !== undefined && (
-                <div className="p-6 bg-white/5 rounded-[2rem] border border-white/10 space-y-4">
-                   <div className="flex justify-between items-center">
-                      <span className="text-[9px] font-black text-slate-400 uppercase">Théorique</span>
-                      <span className="text-sm font-black">{expected.toLocaleString()}</span>
+              {expected !== undefined && opening !== undefined && (
+                <div className="p-8 bg-white/5 rounded-[2.5rem] border border-white/10 space-y-5">
+                   <div className="flex justify-between items-center opacity-70">
+                      <span className="text-[10px] font-black text-slate-400 uppercase">Fond de caisse initial</span>
+                      <span className="text-xs font-black">{opening.toLocaleString()} {config.currency}</span>
                    </div>
-                   <div className="h-px bg-white/10"></div>
+                   <div className="flex justify-between items-center opacity-70">
+                      <span className="text-[10px] font-black text-slate-400 uppercase">Ventes espèces</span>
+                      <span className="text-xs font-black">{(expected - opening).toLocaleString()} {config.currency}</span>
+                   </div>
+                   <div className="h-px bg-white/10 my-2"></div>
                    <div className="flex justify-between items-center">
-                      <span className="text-[9px] font-black text-slate-400 uppercase">Écart</span>
-                      <span className={`text-sm font-black ${countedTotal - expected < 0 ? 'text-rose-500' : countedTotal - expected > 0 ? 'text-emerald-500' : 'text-slate-400'}`}>
+                      <span className="text-[10px] font-black text-purple-400 uppercase">Total théorique attendu</span>
+                      <span className="text-md font-black">{expected.toLocaleString()} {config.currency}</span>
+                   </div>
+                   <div className="flex justify-between items-center pt-2 border-t border-white/5">
+                      <span className="text-[11px] font-black uppercase">Écart constaté</span>
+                      <span className={`text-lg font-black ${countedTotal - expected < 0 ? 'text-rose-500' : countedTotal - expected > 0 ? 'text-emerald-500' : 'text-slate-400'}`}>
                         {countedTotal - expected > 0 ? '+' : ''}{(countedTotal - expected).toLocaleString()}
                       </span>
-                </div>
+                   </div>
                 </div>
               )}
            </div>
@@ -498,7 +506,15 @@ const POS: React.FC<Props> = ({ products, customers, config, session, onOpenSess
   }
 
   if (isClosingSession) {
-    return <BilletageView title="Clôture de Caisse" expected={session.expectedBalance} onConfirm={handleCloseSessionWithBilletage} onCancel={() => setIsClosingSession(false)} />;
+    return (
+      <BilletageView 
+        title="Clôture de Caisse" 
+        expected={session.expectedBalance} 
+        opening={session.openingBalance}
+        onConfirm={handleCloseSessionWithBilletage} 
+        onCancel={() => setIsClosingSession(false)} 
+      />
+    );
   }
 
   if (isHistoryOpen) {
@@ -752,7 +768,6 @@ const POS: React.FC<Props> = ({ products, customers, config, session, onOpenSess
                     <span className="text-[8px] font-black uppercase hidden xl:inline">Transférer</span>
                  </button>
                )}
-               {/* BOUTON SUPPRIMER LA COMMANDE (Libérer la table) */}
                <button 
                  onClick={handleCancelOrder} 
                  className="px-3 py-2 bg-rose-600 hover:bg-white hover:text-rose-600 text-white rounded-xl transition-all flex items-center space-x-2 shadow-inner border border-white/20"
@@ -764,7 +779,6 @@ const POS: React.FC<Props> = ({ products, customers, config, session, onOpenSess
             </div>
           </div>
 
-          {/* ZONE ACTIONS PANIER */}
           {localCart.length > 0 && (
              <div className="px-6 py-3 border-b dark:border-slate-800 bg-slate-50 dark:bg-slate-800/20 flex justify-between items-center">
                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{localCart.length} Article(s)</span>

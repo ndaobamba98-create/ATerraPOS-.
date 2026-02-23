@@ -99,7 +99,7 @@ const Invoicing: React.FC<Props> = ({ sales, config, onUpdate, products, userRol
     <div className="h-full flex flex-col space-y-8 animate-fadeIn pb-10 pr-2">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
         <div className="flex items-center space-x-5">
-           <div className="p-4 bg-purple-600 text-white rounded-3xl shadow-xl shadow-purple-900/20"><Receipt size={32} /></div>
+           <div className="p-4 bg-accent text-white rounded-3xl shadow-xl shadow-accent/20"><Receipt size={32} /></div>
            <div>
               <h1 className="text-3xl font-black text-slate-900 dark:text-white uppercase tracking-tighter leading-none">Factures & Devis</h1>
               <p className="text-sm text-slate-500 font-medium mt-1">Audit et exportation des documents commerciaux</p>
@@ -114,7 +114,7 @@ const Invoicing: React.FC<Props> = ({ sales, config, onUpdate, products, userRol
         <div className="p-8 border-b border-slate-100 dark:border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-6 bg-slate-50/50 dark:bg-slate-900/30">
            <div className="relative w-full max-w-xl">
               <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
-              <input value={searchTerm} onChange={e => setSearchTerm(e.target.value)} placeholder="Chercher un document (N°, Client...)" className="w-full pl-14 pr-8 py-4 bg-white dark:bg-slate-800 border-2 border-transparent focus:border-purple-500 rounded-2xl text-xs font-bold outline-none shadow-sm transition-all" />
+              <input value={searchTerm} onChange={e => setSearchTerm(e.target.value)} placeholder="Chercher un document (N°, Client...)" className="w-full pl-14 pr-8 py-4 bg-white dark:bg-slate-800 border-2 border-transparent focus:border-accent rounded-2xl text-xs font-bold outline-none shadow-sm transition-all" />
            </div>
         </div>
 
@@ -138,7 +138,7 @@ const Invoicing: React.FC<Props> = ({ sales, config, onUpdate, products, userRol
                        {inv.status === 'quotation' ? (inv.eventDetails ? 'Résa' : 'Devis') : (inv.invoiceStatus === 'refunded' ? 'Avoir' : 'Facture')}
                     </span>
                   </td>
-                  <td className="px-10 py-6 font-black font-mono text-xs uppercase tracking-tighter">#{inv.id.slice(-8)}</td>
+                  <td className="px-10 py-6 font-black font-mono text-xs uppercase tracking-tighter text-accent">#{inv.id.slice(-8)}</td>
                   <td className="px-10 py-6">
                     <div className="flex flex-col text-[10px] font-bold">
                       <span className="text-slate-800 dark:text-slate-200">{new Date(inv.date).toLocaleDateString()}</span>
@@ -148,7 +148,7 @@ const Invoicing: React.FC<Props> = ({ sales, config, onUpdate, products, userRol
                   <td className="px-10 py-6 font-black uppercase text-xs text-slate-800 dark:text-slate-100">{inv.customer}</td>
                   <td className="px-10 py-6 text-right font-black text-sm text-slate-900 dark:text-white">{formatCurrency(inv.total)}</td>
                   <td className="px-10 py-6 text-right">
-                    <button onClick={() => setViewedInvoice(inv)} className="p-3 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-2xl text-slate-400 hover:text-purple-600 hover:border-purple-200 transition-all shadow-sm group-hover:scale-110" title="Consulter">
+                    <button onClick={() => setViewedInvoice(inv)} className="p-3 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-2xl text-slate-400 hover:text-accent hover:border-accent/20 transition-all shadow-sm group-hover:scale-110" title="Consulter">
                       <Eye size={20} />
                     </button>
                   </td>
@@ -207,7 +207,7 @@ const InvoiceSinglePageView = ({ sale, config, onBack, notify, allUsers }: { sal
           <button onClick={handleDownloadA4} className="bg-blue-600 text-white px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg flex items-center">
             <FileDown size={20} className="mr-3" /> Exporter PDF A4
           </button>
-          <button onClick={() => window.print()} className="bg-slate-900 text-white px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg flex items-center">
+          <button onClick={() => window.print()} className="bg-accent text-white px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg flex items-center hover:opacity-90">
             <Printer size={20} className="mr-3" /> Imprimer
           </button>
         </div>
@@ -247,14 +247,14 @@ const InvoiceSinglePageView = ({ sale, config, onBack, notify, allUsers }: { sal
 
           <div className="grid grid-cols-2 gap-20 mb-10">
             <div className="space-y-4">
-              <p className="text-[10px] font-black text-purple-600 uppercase tracking-[0.3em] border-b pb-2">Destinataire / Client</p>
+              <p className="text-[10px] font-black text-accent uppercase tracking-[0.3em] border-b pb-2">Destinataire / Client</p>
               <div className="space-y-2">
                  <h3 className="text-lg font-black uppercase">{sale.customer}</h3>
                  <p className="text-xs font-medium text-slate-500">Document généré pour le compte du client suscité.</p>
               </div>
             </div>
             <div className="space-y-4">
-               <p className="text-[10px] font-black text-purple-600 uppercase tracking-[0.3em] border-b pb-2">Informations de Paiement</p>
+               <p className="text-[10px] font-black text-accent uppercase tracking-[0.3em] border-b pb-2">Informations de Paiement</p>
                <div className="space-y-2 text-xs">
                   <div className="flex justify-between"><span className="text-slate-400 font-bold uppercase">Mode de règlement</span><span className="font-black uppercase">{sale.paymentMethod || 'Espèces'}</span></div>
                   <div className="flex justify-between"><span className="text-slate-400 font-bold uppercase">Émis par</span><span className="font-black uppercase">{cashierName}</span></div>
@@ -267,7 +267,7 @@ const InvoiceSinglePageView = ({ sale, config, onBack, notify, allUsers }: { sal
           {sale.eventDetails && (
             <div className="mb-10 p-8 bg-slate-50 rounded-[2rem] border-2 border-slate-900/10 flex items-start gap-10">
                <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center min-w-[120px]">
-                  <p className="text-[10px] font-black text-purple-600 uppercase mb-2">Événement</p>
+                  <p className="text-[10px] font-black text-accent uppercase mb-2">Événement</p>
                   <p className="text-xl font-black text-slate-900">{new Date(sale.eventDetails.date).getDate()}</p>
                   <p className="text-[9px] font-black uppercase text-slate-400">{new Date(sale.eventDetails.date).toLocaleDateString(locale, {month:'short', year:'numeric'})}</p>
                </div>
@@ -300,7 +300,7 @@ const InvoiceSinglePageView = ({ sale, config, onBack, notify, allUsers }: { sal
           <div className="flex-1">
             <table className="w-full border-collapse">
               <thead>
-                <tr className="bg-slate-900 text-white">
+                <tr className="bg-accent text-white">
                   <th className="px-6 py-4 text-left rtl:text-right text-[10px] font-black uppercase tracking-widest">Désignation des Articles</th>
                   <th className="px-6 py-4 text-center text-[10px] font-black uppercase tracking-widest">Qté</th>
                   <th className="px-6 py-4 text-right rtl:text-left text-[10px] font-black uppercase tracking-widest">P.U HT</th>
@@ -349,8 +349,8 @@ const InvoiceSinglePageView = ({ sale, config, onBack, notify, allUsers }: { sal
                       <span className="text-slate-400 font-bold uppercase">TVA (0%)</span>
                       <span className="font-bold">0.00</span>
                    </div>
-                   <div className="bg-slate-900 text-white p-6 rounded-3xl shadow-xl flex justify-between items-center mt-6">
-                      <span className="text-xs font-black uppercase tracking-widest text-purple-400">{isQuotation ? 'Total Devis' : 'Net à Payer'}</span>
+                   <div className="bg-accent text-white p-6 rounded-3xl shadow-xl flex justify-between items-center mt-6">
+                      <span className="text-xs font-black uppercase tracking-widest text-white/70">{isQuotation ? 'Total Devis' : 'Net à Payer'}</span>
                       <span className="text-2xl font-black font-mono">{formatCurrency(sale.total)}</span>
                    </div>
                 </div>

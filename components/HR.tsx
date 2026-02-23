@@ -101,7 +101,7 @@ const HR: React.FC<Props> = ({ employees, onUpdate, attendance, config, expenses
     <div className="h-full flex flex-col space-y-6 animate-fadeIn pb-10 pr-2">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center space-x-4">
-           <div className="p-4 bg-slate-900 text-white rounded-3xl shadow-xl"><IdCard size={32}/></div>
+           <div className="p-4 bg-accent text-white rounded-3xl shadow-xl"><IdCard size={32}/></div>
            <div>
               <h1 className="text-3xl font-black uppercase tracking-tighter leading-none">Ressources Humaines</h1>
               <p className="text-sm text-slate-500 font-medium mt-1">{config.timezone}</p>
@@ -114,7 +114,7 @@ const HR: React.FC<Props> = ({ employees, onUpdate, attendance, config, expenses
               { id: 'attendance', label: 'Présences', icon: Clock },
               { id: 'payroll', label: 'Paie', icon: DollarSign }
             ].map(tab => (
-              <button key={tab.id} onClick={() => setActiveTab(tab.id as any)} className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === tab.id ? 'bg-purple-600 text-white shadow-lg' : 'text-slate-400'}`}>
+              <button key={tab.id} onClick={() => setActiveTab(tab.id as any)} className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === tab.id ? 'bg-accent text-white shadow-lg' : 'text-slate-400'}`}>
                 <tab.icon size={14} className="mr-2 inline" /> {tab.label}
               </button>
             ))}
@@ -154,23 +154,23 @@ const HR: React.FC<Props> = ({ employees, onUpdate, attendance, config, expenses
              }} className="p-10 space-y-6">
                 <div className="space-y-2">
                   <label className="text-[10px] font-black uppercase text-slate-400">Nom complet</label>
-                  <input required value={editingEmployee.name || ''} onChange={e => setEditingEmployee({...editingEmployee, name: e.target.value})} className="w-full px-6 py-4 bg-slate-50 dark:bg-slate-800 rounded-2xl font-black outline-none" />
+                  <input required value={editingEmployee.name || ''} onChange={e => setEditingEmployee({...editingEmployee, name: e.target.value})} className="w-full px-6 py-4 bg-slate-50 dark:bg-slate-800 rounded-2xl font-black outline-none focus:ring-2 focus:ring-accent" />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <label className="text-[10px] font-black uppercase text-slate-400">Rôle</label>
-                    <input required value={editingEmployee.role || ''} onChange={e => setEditingEmployee({...editingEmployee, role: e.target.value})} className="w-full px-6 py-4 bg-slate-50 dark:bg-slate-800 rounded-2xl font-black outline-none" />
+                    <input required value={editingEmployee.role || ''} onChange={e => setEditingEmployee({...editingEmployee, role: e.target.value})} className="w-full px-6 py-4 bg-slate-50 dark:bg-slate-800 rounded-2xl font-black outline-none focus:ring-2 focus:ring-accent" />
                   </div>
                   <div className="space-y-2">
                     <label className="text-[10px] font-black uppercase text-slate-400">Salaire Mensuel</label>
-                    <input type="number" required value={editingEmployee.salary || ''} onChange={e => setEditingEmployee({...editingEmployee, salary: parseFloat(e.target.value)})} className="w-full px-6 py-4 bg-slate-50 dark:bg-slate-800 rounded-2xl font-black outline-none text-purple-600" />
+                    <input type="number" required value={editingEmployee.salary || ''} onChange={e => setEditingEmployee({...editingEmployee, salary: parseFloat(e.target.value)})} className="w-full px-6 py-4 bg-slate-50 dark:bg-slate-800 rounded-2xl font-black outline-none text-accent" />
                   </div>
                 </div>
                 <div className="space-y-2">
                   <label className="text-[10px] font-black uppercase text-slate-400">Département</label>
-                  <input value={editingEmployee.department || ''} onChange={e => setEditingEmployee({...editingEmployee, department: e.target.value})} className="w-full px-6 py-4 bg-slate-50 dark:bg-slate-800 rounded-2xl font-black outline-none" />
+                  <input value={editingEmployee.department || ''} onChange={e => setEditingEmployee({...editingEmployee, department: e.target.value})} className="w-full px-6 py-4 bg-slate-50 dark:bg-slate-800 rounded-2xl font-black outline-none focus:ring-2 focus:ring-accent" />
                 </div>
-                <button type="submit" className="w-full py-5 bg-purple-600 text-white rounded-3xl font-black uppercase text-xs shadow-xl">Enregistrer l'agent</button>
+                <button type="submit" className="w-full py-5 bg-accent text-white rounded-3xl font-black uppercase text-xs shadow-xl hover:opacity-90">Enregistrer l'agent</button>
              </form>
           </div>
         </div>
@@ -185,11 +185,11 @@ const EmployeeCard = ({ employee, onEdit, onContract, onPayslip }: any) => (
       {employee.photo ? <img src={employee.photo} className="w-full h-full object-cover" /> : employee.name[0]}
     </div>
     <h3 className="font-black text-slate-900 dark:text-white uppercase tracking-tight text-md line-clamp-1">{employee.name}</h3>
-    <p className="text-[9px] font-black text-purple-600 uppercase tracking-widest mt-1 mb-6">{employee.role}</p>
+    <p className="text-[9px] font-black text-accent uppercase tracking-widest mt-1 mb-6">{employee.role}</p>
     <div className="w-full grid grid-cols-3 gap-2 pt-4 border-t dark:border-slate-800">
       <button onClick={onContract} className="p-3 bg-slate-50 dark:bg-slate-800 rounded-xl text-slate-400 hover:text-blue-600 transition-colors" title="Contrat & Dossier"><FileSignature size={16} /></button>
       <button onClick={onPayslip} className="p-3 bg-slate-50 dark:bg-slate-800 rounded-xl text-slate-400 hover:text-emerald-600 transition-colors" title="Bulletin de Paie"><DollarSign size={16} /></button>
-      <button onClick={onEdit} className="p-3 bg-slate-50 dark:bg-slate-800 rounded-xl text-slate-400 hover:text-slate-900 transition-colors" title="Modifier Fiche"><Edit3 size={16} /></button>
+      <button onClick={onEdit} className="p-3 bg-slate-50 dark:bg-slate-800 rounded-xl text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors" title="Modifier Fiche"><Edit3 size={16} /></button>
     </div>
   </div>
 );
@@ -197,7 +197,7 @@ const EmployeeCard = ({ employee, onEdit, onContract, onPayslip }: any) => (
 const PayrollTable = ({ employees, config, onPay, calculatePayroll, formatCurrency }: any) => (
   <div className="bg-white dark:bg-slate-900 rounded-[3rem] border shadow-sm overflow-hidden">
     <table className="w-full text-left">
-      <thead className="bg-slate-900 text-white text-[10px] font-black uppercase">
+      <thead className="bg-accent text-white text-[10px] font-black uppercase">
         <tr>
           <th className="px-10 py-6">Agent</th>
           <th className="px-10 py-6">Base</th>
@@ -210,11 +210,11 @@ const PayrollTable = ({ employees, config, onPay, calculatePayroll, formatCurren
         {employees.map((emp: any) => {
           const payroll = calculatePayroll(emp);
           return (
-            <tr key={emp.id} className="hover:bg-slate-50">
+            <tr key={emp.id} className="hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
               <td className="px-10 py-6 font-black uppercase text-xs">{emp.name}</td>
               <td className="px-10 py-6 text-xs text-slate-500">{formatCurrency(emp.salary)}</td>
               <td className="px-10 py-6 text-center text-rose-500 font-bold">-{formatCurrency(payroll.absenceDeduction + payroll.lateDeduction)}</td>
-              <td className="px-10 py-6 text-center font-black text-purple-600 text-base">{formatCurrency(payroll.netSalary)}</td>
+              <td className="px-10 py-6 text-center font-black text-accent text-base">{formatCurrency(payroll.netSalary)}</td>
               <td className="px-10 py-6 text-right">
                 <button disabled={payroll.isPaid} onClick={() => onPay(emp)} className={`px-5 py-2.5 rounded-xl text-[9px] font-black uppercase ${payroll.isPaid ? 'bg-emerald-50 text-emerald-600 cursor-default' : 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-lg'}`}>
                   {payroll.isPaid ? 'Payé ✓' : 'Régler'}
@@ -287,8 +287,8 @@ const ContractView = ({ employee, config, onBack, locale, onUpdateEmployee, noti
           <div>
             <h2 className="text-xl font-black uppercase tracking-tighter">Dossier RH : {employee.name}</h2>
             <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl mt-2">
-               <button onClick={() => setActiveSubTab('contract')} className={`px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${activeSubTab === 'contract' ? 'bg-white dark:bg-slate-700 text-purple-600 shadow-sm' : 'text-slate-400'}`}>Le Contrat</button>
-               <button onClick={() => setActiveSubTab('files')} className={`px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${activeSubTab === 'files' ? 'bg-white dark:bg-slate-700 text-purple-600 shadow-sm' : 'text-slate-400'}`}>Documents joints ({employee.attachments?.length || 0})</button>
+               <button onClick={() => setActiveSubTab('contract')} className={`px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${activeSubTab === 'contract' ? 'bg-white dark:bg-slate-700 text-accent shadow-sm' : 'text-slate-400'}`}>Le Contrat</button>
+               <button onClick={() => setActiveSubTab('files')} className={`px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${activeSubTab === 'files' ? 'bg-white dark:bg-slate-700 text-accent shadow-sm' : 'text-slate-400'}`}>Documents joints ({employee.attachments?.length || 0})</button>
             </div>
           </div>
         </div>
@@ -303,7 +303,7 @@ const ContractView = ({ employee, config, onBack, locale, onUpdateEmployee, noti
               </button>
             </>
           ) : (
-            <label className="bg-purple-600 text-white px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg flex items-center hover:bg-purple-700 transition-all cursor-pointer">
+            <label className="bg-accent text-white px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg flex items-center hover:opacity-90 transition-all cursor-pointer">
               <Plus size={20} className="mr-3" /> Ajouter un fichier
               <input type="file" multiple className="hidden" onChange={handleFileUpload} />
             </label>
@@ -346,17 +346,12 @@ const ContractView = ({ employee, config, onBack, locale, onUpdateEmployee, noti
 
                   <section>
                     <h3 className="font-black uppercase mb-3 border-b border-slate-200 pb-1 flex items-center"><Briefcase size={16} className="mr-2"/> Article 2 - Fonctions et Qualification</h3>
-                    <p>L'employé est recruté en qualité de <strong>{employee.role}</strong> au sein du département <strong>{employee.department || 'Opérations'}</strong>. Dans le cadre de ses fonctions, il/elle s'engage à respecter les consignes de sécurité, d'hygiène et le règlement intérieur de l'établissement.</p>
+                    <p>Le présent contrat prend effet le <strong>{new Date(employee.joinDate).toLocaleDateString(locale)}</strong>. Le lieu de travail principal est fixé au siège de l'établissement sis à {config.address}.</p>
                   </section>
 
                   <section>
                     <h3 className="font-black uppercase mb-3 border-b border-slate-200 pb-1 flex items-center"><DollarSign size={16} className="mr-2"/> Article 3 - Rémunération</h3>
                     <p>En contrepartie de l'exécution de ses missions, l'employé percevra une rémunération mensuelle forfaitaire brute de <strong>{employee.salary.toLocaleString()} {config.currency}</strong>. Cette rémunération sera versée à la fin de chaque mois calendaire.</p>
-                  </section>
-
-                  <section>
-                    <h3 className="font-black uppercase mb-3 border-b border-slate-200 pb-1 flex items-center"><Clock size={16} className="mr-2"/> Article 4 - Durée et Lieu de travail</h3>
-                    <p>Le présent contrat prend effet le <strong>{new Date(employee.joinDate).toLocaleDateString(locale)}</strong>. Le lieu de travail principal est fixé au siège de l'établissement sis à {config.address}.</p>
                   </section>
 
                   <div className="pt-24 grid grid-cols-2 gap-20">
@@ -386,7 +381,7 @@ const ContractView = ({ employee, config, onBack, locale, onUpdateEmployee, noti
           <div className="max-w-5xl mx-auto py-10 space-y-8 animate-fadeIn">
              <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {employee.attachments?.map((file: Attachment) => (
-                  <div key={file.id} className="bg-white dark:bg-slate-900 p-5 rounded-[2rem] border-2 border-slate-100 dark:border-slate-800 shadow-sm group hover:border-purple-300 hover:shadow-xl transition-all flex flex-col items-center">
+                  <div key={file.id} className="bg-white dark:bg-slate-900 p-5 rounded-[2rem] border-2 border-slate-100 dark:border-slate-800 shadow-sm group hover:border-accent/30 hover:shadow-xl transition-all flex flex-col items-center">
                      <div className="w-full aspect-square bg-slate-50 dark:bg-slate-800 rounded-2xl flex items-center justify-center mb-4 overflow-hidden relative">
                         {file.type.startsWith('image/') ? (
                            <img src={file.url} className="w-full h-full object-cover" />
@@ -403,8 +398,8 @@ const ContractView = ({ employee, config, onBack, locale, onUpdateEmployee, noti
                   </div>
                 ))}
                 
-                <label className="aspect-[4/5] md:aspect-auto border-4 border-dashed border-slate-100 dark:border-slate-800 rounded-[2rem] flex flex-col items-center justify-center text-slate-300 hover:text-purple-600 hover:border-purple-300 transition-all cursor-pointer group">
-                   <div className="p-5 bg-slate-50 dark:bg-slate-800 rounded-3xl mb-4 group-hover:bg-purple-50 transition-colors">
+                <label className="aspect-[4/5] md:aspect-auto border-4 border-dashed border-slate-100 dark:border-slate-800 rounded-[2rem] flex flex-col items-center justify-center text-slate-300 hover:text-accent hover:border-accent/30 transition-all cursor-pointer group">
+                   <div className="p-5 bg-slate-50 dark:bg-slate-800 rounded-3xl mb-4 group-hover:bg-accent/10 transition-colors">
                       <Upload size={32} />
                    </div>
                    <span className="text-[10px] font-black uppercase tracking-[0.2em]">Ajouter un document</span>
@@ -412,14 +407,6 @@ const ContractView = ({ employee, config, onBack, locale, onUpdateEmployee, noti
                    <input type="file" multiple className="hidden" onChange={handleFileUpload} />
                 </label>
              </div>
-
-             {(!employee.attachments || employee.attachments.length === 0) && (
-                <div className="py-20 text-center opacity-30 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-[3rem]">
-                   <Paperclip size={64} className="mx-auto mb-4" />
-                   <h3 className="text-sm font-black uppercase tracking-widest">Le dossier est vide</h3>
-                   <p className="text-xs mt-1">Numérisez les documents d'identité et de formation ici.</p>
-                </div>
-             )}
           </div>
         )}
       </div>
@@ -448,12 +435,12 @@ const PayslipView = ({ employee, payroll, config, onBack, locale }: any) => {
            <button onClick={onBack} className="p-4 bg-slate-100 dark:bg-slate-800 rounded-2xl hover:bg-slate-200 transition-all"><ArrowLeft size={22} /></button>
            <div className="flex items-center space-x-3">
               <button onClick={handleDownloadPDF} className="bg-emerald-600 text-white px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg flex items-center hover:bg-emerald-700 transition-all"><FileDown size={20} className="mr-3" /> PDF</button>
-              <button onClick={() => window.print()} className="bg-slate-900 text-white px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg flex items-center hover:bg-black transition-all"><Printer size={20} className="mr-3" /> Imprimer</button>
+              <button onClick={() => window.print()} className="bg-accent text-white px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg flex items-center hover:opacity-90 transition-all"><Printer size={20} className="mr-3" /> Imprimer</button>
            </div>
         </div>
 
         <div className="flex-1 overflow-y-auto p-10 flex justify-center scrollbar-hide" dir={locale === 'ar-SA' ? 'rtl' : 'ltr'}>
-          <div id="payslip-area" className="bg-white text-slate-950 p-16 shadow-2xl w-[210mm] font-sans border-t-8 border-purple-600">
+          <div id="payslip-area" className="bg-white text-slate-950 p-16 shadow-2xl w-[210mm] font-sans border-t-8 border-accent">
              <div className="flex justify-between items-start border-b-2 border-slate-100 pb-10 mb-10">
                 <div className="space-y-1">
                    <AppLogoDoc className="w-12 h-12 mb-4" customLogo={config.companyLogo} />
@@ -461,31 +448,24 @@ const PayslipView = ({ employee, payroll, config, onBack, locale }: any) => {
                    <p className="text-[10px] font-bold text-slate-400 uppercase">{config.address}</p>
                 </div>
                 <div className="text-right rtl:text-left">
-                   <h1 className="text-2xl font-black uppercase tracking-widest text-purple-600">Bulletin de Paie</h1>
+                   <h1 className="text-2xl font-black uppercase tracking-widest text-accent">Bulletin de Paie</h1>
                    <p className="text-xs font-bold text-slate-400 mt-1">Période : {new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric' }).format(new Date())}</p>
                 </div>
              </div>
 
              <div className="grid grid-cols-2 gap-10 mb-16">
                 <div className="p-6 bg-slate-50 rounded-3xl space-y-4">
-                   <h3 className="text-[10px] font-black uppercase text-purple-600 border-b pb-2">Informations Salarié</h3>
+                   <h3 className="text-[10px] font-black uppercase text-accent border-b pb-2">Informations Salarié</h3>
                    <div className="space-y-2">
                       <div className="flex justify-between text-xs"><span className="text-slate-400 uppercase font-bold">Nom</span><span className="font-black uppercase">{employee.name}</span></div>
                       <div className="flex justify-between text-xs"><span className="text-slate-400 uppercase font-bold">Matricule</span><span className="font-mono font-bold">#{employee.id.slice(-6)}</span></div>
                       <div className="flex justify-between text-xs"><span className="text-slate-400 uppercase font-bold">Poste</span><span className="font-bold">{employee.role}</span></div>
                    </div>
                 </div>
-                <div className="p-6 bg-slate-50 rounded-3xl space-y-4">
-                   <h3 className="text-[10px] font-black uppercase text-purple-600 border-b pb-2">Détails Présence</h3>
-                   <div className="space-y-2">
-                      <div className="flex justify-between text-xs"><span className="text-slate-400 uppercase font-bold">Jours Absences</span><span className="font-bold text-rose-600">{payroll.absenceDays} j</span></div>
-                      <div className="flex justify-between text-xs"><span className="text-slate-400 uppercase font-bold">Minutes Retard</span><span className="font-bold text-rose-600">{payroll.lateMinutes} m</span></div>
-                   </div>
-                </div>
              </div>
 
              <table className="w-full mb-16">
-                <thead className="bg-slate-900 text-white text-[10px] font-black uppercase">
+                <thead className="bg-accent text-white text-[10px] font-black uppercase">
                    <tr>
                       <th className="px-6 py-4 text-left rtl:text-right">Rubrique</th>
                       <th className="px-6 py-4 text-center">Base</th>
@@ -500,22 +480,6 @@ const PayslipView = ({ employee, payroll, config, onBack, locale }: any) => {
                       <td className="px-6 py-5 text-right">-</td>
                       <td className="px-6 py-5 text-right font-bold">{employee.salary.toLocaleString()}</td>
                    </tr>
-                   {payroll.absenceDeduction > 0 && (
-                     <tr>
-                        <td className="px-6 py-5 text-slate-500 italic">Retenue pour Absences</td>
-                        <td className="px-6 py-5 text-center">-</td>
-                        <td className="px-6 py-5 text-right text-rose-500">-{payroll.absenceDeduction.toLocaleString()}</td>
-                        <td className="px-6 py-5 text-right">-</td>
-                     </tr>
-                   )}
-                   {payroll.lateDeduction > 0 && (
-                     <tr>
-                        <td className="px-6 py-5 text-slate-500 italic">Pénalités Retards</td>
-                        <td className="px-6 py-5 text-center">-</td>
-                        <td className="px-6 py-5 text-right text-rose-500">-{payroll.lateDeduction.toLocaleString()}</td>
-                        <td className="px-6 py-5 text-right">-</td>
-                     </tr>
-                   )}
                 </tbody>
              </table>
 
@@ -527,15 +491,10 @@ const PayslipView = ({ employee, payroll, config, onBack, locale }: any) => {
                    </div>
                    <div className="h-px bg-white/10"></div>
                    <div className="flex justify-between items-center">
-                      <span className="text-xs font-black uppercase text-purple-400">Net à Payer</span>
+                      <span className="text-xs font-black uppercase text-accent">Net à Payer</span>
                       <span className="text-2xl font-black">{payroll.netSalary.toLocaleString()} {config.currencySymbol}</span>
                    </div>
                 </div>
-             </div>
-
-             <div className="mt-20 flex justify-between items-end border-t pt-10 opacity-50">
-                <p className="text-[9px] font-medium max-w-xs uppercase">Document certifié conforme par {config.companyName}. Conservez ce bulletin sans limitation de durée.</p>
-                <QrCode size={32} />
              </div>
           </div>
         </div>
