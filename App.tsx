@@ -230,6 +230,31 @@ const App: React.FC = () => {
     setNotifications(prev => [newNotif, ...prev]);
   }, []);
 
+  // --- REAL-TIME STOCK NOTIFICATIONS ---
+  useEffect(() => {
+    if (!currentUser) return;
+    
+    products.forEach(product => {
+      const threshold = product.lowStockThreshold ?? 10;
+      if (product.stock <= threshold) {
+        const notificationTitle = "Alerte Stock Faible";
+        const hasNotification = notifications.some(n => 
+          !n.read && 
+          n.title === notificationTitle && 
+          n.message.includes(`"${product.name}"`)
+        );
+        
+        if (!hasNotification) {
+          notifyUser(
+            notificationTitle, 
+            `Le produit "${product.name}" est en dessous du seuil critique. Stock actuel: ${product.stock}.`, 
+            "warning"
+          );
+        }
+      }
+    });
+  }, [products, notifyUser, notifications, currentUser]);
+
   const markAllAsRead = () => setNotifications(notifications.map(n => ({ ...n, read: true })));
   const clearAllNotifications = () => { setNotifications([]); setIsNotifOpen(false); };
   const toggleRead = (id: string) => setNotifications(notifications.map(n => n.id === id ? { ...n, read: !n.read } : n));
